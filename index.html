@@ -1,78 +1,352 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <title>Hockeyclub Kledingregistratie</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MHC Forescate Kledingregistratie</title>
+<style>
+  :root {
+    --club-lightblue: #8ec9e6;
+    --club-darkblue: #003366;
+    --club-white: #ffffff;
+    --club-gray: #f5f5f5;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+    background: var(--club-gray);
+    color: #333;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  .header img {
+    height: 60px;
+    margin-right: 20px;
+  }
+  .header h1 {
+    margin: 0;
+    color: var(--club-darkblue);
+  }
+  h2 {
+    color: var(--club-darkblue);
+    margin-top: 0;
+  }
+  .panel {
+    background: var(--club-white);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 15px;
+    background: var(--club-darkblue);
+    color: var(--club-white);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: var(--club-lightblue);
+    color: var(--club-darkblue);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--club-white);
+  }
+  table th {
+    background: var(--club-darkblue);
+    color: var(--club-white);
+    padding: 10px;
+    text-align: left;
+  }
+  table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+  .error {
+    color: red;
+    margin-top: -10px;
+    margin-bottom: 10px;
+  }
+  /* Delete button style */
+  .delete-btn {
+    background-color: #d9534f;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .delete-btn:hover {
+    background-color: #c9302c;
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .header img {
+      margin-bottom: 15px;
+    }
+  }
+</style>
 </head>
 <body>
 
-<h1>Kledingregistratie – Hockeyclub</h1>
+<div class="header">
+  <img src="forescate-logo.png" alt="MHC Forescate logo" />
+  <h1>Kledingregistratie – MHC Forescate</h1>
+</div>
 
 <div id="login-section" class="panel">
-    <h2>Beheerder Login</h2>
-    <input id="admin-password" type="password" placeholder="Wachtwoord">
-    <button onclick="loginAdmin()">Login</button>
-    <p id="login-error" class="error"></p>
+  <h2>Beheerder Login</h2>
+  <input id="admin-password" type="password" placeholder="Wachtwoord" />
+  <button onclick="loginAdmin()">Login</button>
+  <p id="login-error" class="error"></p>
 </div>
 
 <div id="app-section" style="display:none;">
 
-    <div class="panel">
-        <h2>Nieuwe registratie</h2>
-        <form id="kledingForm">
-            <input type="text" id="naam" placeholder="Naam speler" required>
-            <input type="text" id="team" placeholder="Team" required>
+  <div class="panel">
+    <h2>Nieuwe registratie</h2>
+    <form id="kledingForm">
+      <input type="text" id="naam" placeholder="Naam speler" required />
+      <input type="text" id="team" placeholder="Team" required />
 
-            <label>Maat shirt</label><select id="maat_shirt"></select>
-            <label>Maat broek/rok</label><select id="maat_broek"></select>
-            <label>Maat jack</label><select id="maat_jack"></select>
+      <label for="maat_shirt">Maat shirt</label>
+      <select id="maat_shirt" required></select>
 
-            <label>Maat sokken</label>
-            <select id="maat_sokken">
-                <option>28-32</option><option>33-36</option>
-                <option>36-40</option><option>40-44</option>
-                <option>45-47</option>
-            </select>
+      <label for="maat_broek">Maat broek/rok</label>
+      <select id="maat_broek" required></select>
 
-            <button type="submit">Opslaan</button>
-        </form>
-    </div>
+      <label for="maat_jack">Maat jack</label>
+      <select id="maat_jack" required></select>
 
-    <div class="panel">
-        <h2>Teamfilter</h2>
-        <select id="teamFilter" onchange="updateTable()">
-            <option value="">Alle teams</option>
-        </select>
-    </div>
+      <label for="maat_sokken">Maat sokken</label>
+      <select id="maat_sokken" required>
+        <option value="28-32">28-32</option>
+        <option value="33-36">33-36</option>
+        <option value="36-40">36-40</option>
+        <option value="40-44">40-44</option>
+        <option value="45-47">45-47</option>
+      </select>
 
-    <div class="panel">
-        <h2>Voorraadbeheer</h2>
-        <div id="voorraad-table"></div>
-    </div>
+      <button type="submit">Opslaan</button>
+    </form>
+  </div>
 
-    <div class="panel">
-        <h2>Registraties</h2>
-        <button onclick="exportCSV()">Exporteren naar CSV</button>
-        <table id="registratieTable">
-            <thead>
-                <tr>
-                    <th>Naam</th><th>Team</th>
-                    <th>Shirt</th><th>Broek/Rok</th>
-                    <th>Jack</th><th>Sokken</th>
-                    <th>Verwijderen</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+  <div class="panel">
+    <h2>Teamfilter</h2>
+    <select id="teamFilter" onchange="updateTable()">
+      <option value="">Alle teams</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <h2>Voorraadbeheer</h2>
+    <div id="voorraad-table"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Registraties</h2>
+    <button onclick="exportCSV()">Exporteren naar CSV</button>
+    <table id="registratieTable">
+      <thead>
+        <tr>
+          <th>Naam</th>
+          <th>Team</th>
+          <th>Shirt</th>
+          <th>Broek/Rok</th>
+          <th>Jack</th>
+          <th>Sokken</th>
+          <th>Verwijderen</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
 </div>
 
-<script src="app.js"></script>
-<script src="voorraad.js"></script>
-<script src="admin.js"></script>
-<script src="firebase.js"></script>
+<script>
+  const ADMIN_PASSWORD = "Hockey123"; // Pas aan indien gewenst
+
+  function loginAdmin() {
+    const pw = document.getElementById("admin-password").value.trim();
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("app-section").style.display = "block";
+      updateTable();
+      toonVoorraad();
+    } else {
+      document.getElementById("login-error").innerText = "Onjuist wachtwoord";
+    }
+  }
+
+  const maten = ["6-8 jaar","8-10 jaar","10-12 jaar","12-14 jaar","XXS","XS","S","M","L","XL","XXL"];
+  const sokkenMaten = ["28-32","33-36","36-40","40-44","45-47"];
+
+  ["maat_shirt","maat_broek","maat_jack"].forEach(id => {
+    const select = document.getElementById(id);
+    maten.forEach(m => {
+      let option = document.createElement("option");
+      option.value = option.textContent = m;
+      select.appendChild(option);
+    });
+  });
+
+  let registraties = JSON.parse(localStorage.getItem("registraties") || "[]");
+
+  function saveRegistraties() {
+    localStorage.setItem("registraties", JSON.stringify(registraties));
+  }
+
+  function updateTeamFilter() {
+    const teams = [...new Set(registraties.map(r => r.team))].sort();
+    const tf = document.getElementById("teamFilter");
+    tf.innerHTML = '<option value="">Alle teams</option>';
+    teams.forEach(t => {
+      tf.innerHTML += `<option value="${t}">${t}</option>`;
+    });
+  }
+
+  function updateTable() {
+    const filterTeam = document.getElementById("teamFilter").value;
+    const tbody = document.querySelector("#registratieTable tbody");
+    tbody.innerHTML = "";
+
+    registraties
+      .filter(r => filterTeam === "" || r.team === filterTeam)
+      .forEach((r, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${r.naam}</td>
+            <td>${r.team}</td>
+            <td>${r.shirt}</td>
+            <td>${r.broek}</td>
+            <td>${r.jack}</td>
+            <td>${r.sokken}</td>
+            <td><button class="delete-btn" onclick="verwijderReg(${i})">X</button></td>
+          </tr>
+        `;
+      });
+
+    updateTeamFilter();
+  }
+
+  function verwijderReg(i) {
+    registraties.splice(i,1);
+    saveRegistraties();
+    updateTable();
+  }
+
+  // Voorraadbeheer
+  let voorraad = JSON.parse(localStorage.getItem("voorraad")) || {
+    shirt: { "6-8 jaar":5,"8-10 jaar":5,"10-12 jaar":5,"12-14 jaar":5, XXS:5, XS:5,S:5,M:5,L:5,XL:5,XXL:5 },
+    broek: { "6-8 jaar":5,"8-10 jaar":5,"10-12 jaar":5,"12-14 jaar":5, XXS:5, XS:5,S:5,M:5,L:5,XL:5,XXL:5 },
+    jack:  { "6-8 jaar":5,"8-10 jaar":5,"10-12 jaar":5,"12-14 jaar":5, XXS:5, XS:5,S:5,M:5,L:5,XL:5,XXL:5 },
+    sokken:{ "28-32":10,"33-36":10,"36-40":10,"40-44":10,"45-47":10 }
+  };
+
+  function saveVoorraad() {
+    localStorage.setItem("voorraad", JSON.stringify(voorraad));
+  }
+
+  function toonVoorraad() {
+    let html = "<table><thead><tr><th>Maat</th><th>Shirt</th><th>Broek/Rok</th><th>Jack</th><th>Sokken</th></tr></thead><tbody>";
+
+    const alleMaten = new Set([
+      ...Object.keys(voorraad.shirt),
+      ...Object.keys(voorraad.broek),
+      ...Object.keys(voorraad.jack),
+      ...Object.keys(voorraad.sokken)
+    ]);
+
+    Array.from(alleMaten).sort((a,b) => {
+      // Sorteer getallen en strings logisch:
+      const nA = parseInt(a), nB = parseInt(b);
+      if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+      if (!isNaN(nA)) return -1;
+      if (!isNaN(nB)) return 1;
+      return a.localeCompare(b);
+    }).forEach(m => {
+      html += `
+        <tr>
+          <td>${m}</td>
+          <td>${voorraad.shirt[m] ?? ""}</td>
+          <td>${voorraad.broek[m] ?? ""}</td>
+          <td>${voorraad.jack[m] ?? ""}</td>
+          <td>${voorraad.sokken[m] ?? ""}</td>
+        </tr>`;
+    });
+
+    html += "</tbody></table>";
+    document.getElementById("voorraad-table").innerHTML = html;
+  }
+
+  function verlaagVoorraad(type, maat) {
+    if (!voorraad[type]) return;
+    if (voorraad[type][maat] > 0) {
+      voorraad[type][maat]--;
+      saveVoorraad();
+      toonVoorraad();
+    } else {
+      alert(`Let op: voorraad van ${type} maat ${maat} is op!`);
+    }
+  }
+
+  document.getElementById("kledingForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const r = {
+      naam: document.getElementById("naam").value.trim(),
+      team: document.getElementById("team").value.trim(),
+      shirt: document.getElementById("maat_shirt").value,
+      broek: document.getElementById("maat_broek").value,
+      jack: document.getElementById("maat_jack").value,
+      sokken: document.getElementById("maat_sokken").value
+    };
+
+    registraties.push(r);
+    saveRegistraties();
+
+    verlaagVoorraad("shirt", r.shirt);
+    verlaagVoorraad("broek", r.broek);
+    verlaagVoorraad("jack", r.jack);
+    verlaagVoorraad("sokken", r.sokken);
+
+    e.target.reset();
+    updateTable();
+  });
+
+  function exportCSV() {
+    let csv = "Naam,Team,Shirt,Broek/Rok,Jack,Sokken\n";
+    registraties.forEach(r => {
+      csv += `"${r.naam}","${r.team}","${r.shirt}","${r.broek}","${r.jack}","${r.sokken}"\n`;
+    });
+    const blob = new Blob([csv], {type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "kledingregistratie.csv";
+    a.click();
+  }
+</script>
 
 </body>
 </html>
