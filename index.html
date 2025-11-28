@@ -95,7 +95,6 @@
   .delete-btn:hover {
     background-color: #c9302c;
   }
-  /* Responsive */
   @media (max-width: 600px) {
     .header {
       flex-direction: column;
@@ -105,7 +104,6 @@
       margin-bottom: 15px;
     }
   }
-  /* Tab buttons */
   .tab-buttons {
     margin-bottom: 15px;
   }
@@ -140,10 +138,32 @@
 
   <!-- Registraties tab -->
   <div id="registraties" class="panel">
+
+    <div style="margin-bottom:20px;">
+      <label for="importCsv">Importeer leden & teams (CSV met Naam,Team,Geslacht): </label>
+      <input type="file" id="importCsv" accept=".csv" />
+      <button onclick="importLeden()">Importeren</button>
+      <p id="importStatus" style="color:green;"></p>
+    </div>
+
     <h2>Nieuwe registratie</h2>
     <form id="kledingForm">
-      <input type="text" id="naam" placeholder="Naam speler" required />
-      <input type="text" id="team" placeholder="Team" required />
+      <label for="naam">Speler</label>
+      <select id="naam" required>
+        <option value="" disabled selected>-- Kies speler --</option>
+      </select>
+
+      <label for="geslacht">Geslacht</label>
+      <select id="geslacht" required>
+        <option value="" disabled selected>-- Kies geslacht --</option>
+        <option value="Man">Man</option>
+        <option value="Vrouw">Vrouw</option>
+      </select>
+
+      <label for="team">Team</label>
+      <select id="team" required>
+        <option value="" disabled selected>-- Kies team --</option>
+      </select>
 
       <label for="maat_shirt">Maat shirt</label>
       <select id="maat_shirt" required></select>
@@ -180,6 +200,7 @@
         <thead>
           <tr>
             <th>Naam</th>
+            <th>Geslacht</th>
             <th>Team</th>
             <th>Shirt</th>
             <th>Broek/Rok</th>
@@ -205,203 +226,218 @@
 </div>
 
 <script>
-  const ADMIN_PASSWORD = "Hockey123";
+const ADMIN_PASSWORD = "Hockey123";
+const maten = ["6-8 jaar","8-10 jaar","10-12 jaar","12-14 jaar","XXS","XS","S","M","L","XL","XXL"];
+const sokkenMaten = ["28-32","33-36","36-40","40-44","45-47"];
+const kledingTypes = ["shirt", "broek", "jack", "sokken"];
 
-  // Kleuren en maten
-  const maten = ["6-8 jaar","8-10 jaar","10-12 jaar","12-14 jaar","XXS","XS","S","M","L","XL","XXL"];
-  const sokkenMaten = ["28-32","33-36","36-40","40-44","45-47"];
-  const kledingTypes = ["shirt", "broek", "jack", "sokken"];
-
-  // Admin login
-  function loginAdmin() {
-    const pw = document.getElementById("admin-password").value.trim();
-    if (pw === ADMIN_PASSWORD) {
-      document.getElementById("login-section").style.display = "none";
-      document.getElementById("app-section").style.display = "block";
-      initApp();
-    } else {
-      document.getElementById("login-error").innerText = "Onjuist wachtwoord";
-    }
+// Admin login
+function loginAdmin() {
+  const pw = document.getElementById("admin-password").value.trim();
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("app-section").style.display = "block";
+    initApp();
+  } else {
+    document.getElementById("login-error").innerText = "Onjuist wachtwoord";
   }
+}
 
-  // Select vullen voor maten (shirt, broek, jack)
-  ["maat_shirt","maat_broek","maat_jack"].forEach(id => {
-    const select = document.getElementById(id);
-    maten.forEach(m => {
-      let option = document.createElement("option");
-      option.value = option.textContent = m;
-      select.appendChild(option);
-    });
+// Dropdown maten
+["maat_shirt","maat_broek","maat_jack"].forEach(id => {
+  const select = document.getElementById(id);
+  maten.forEach(m => {
+    let option = document.createElement("option");
+    option.value = option.textContent = m;
+    select.appendChild(option);
   });
+});
 
-  // Registraties ophalen en opslaan
-  let registraties = JSON.parse(localStorage.getItem("registraties") || "[]");
-  function saveRegistraties() {
-    localStorage.setItem("registraties", JSON.stringify(registraties));
-  }
+// Registraties & Voorraad
+let registraties = JSON.parse(localStorage.getItem("registraties") || "[]");
+let voorraad = JSON.parse(localStorage.getItem("voorraad")) || {
+  shirt: Object.fromEntries(maten.map(m => [m,5])),
+  broek: Object.fromEntries(maten.map(m => [m,5])),
+  jack: Object.fromEntries(maten.map(m => [m,5])),
+  sokken: Object.fromEntries(sokkenMaten.map(m => [m,10]))
+};
+let leden = JSON.parse(localStorage.getItem("leden")) || [];
 
-  // Voorraad ophalen en opslaan
-  let voorraad = JSON.parse(localStorage.getItem("voorraad")) || {
-    shirt: Object.fromEntries(maten.map(m => [m,5])),
-    broek: Object.fromEntries(maten.map(m => [m,5])),
-    jack: Object.fromEntries(maten.map(m => [m,5])),
-    sokken: Object.fromEntries(sokkenMaten.map(m => [m,10]))
+// Save functies
+function saveRegistraties(){localStorage.setItem("registraties", JSON.stringify(registraties));}
+function saveVoorraad(){localStorage.setItem("voorraad", JSON.stringify(voorraad));}
+function saveLeden(){localStorage.setItem("leden", JSON.stringify(leden));}
+
+// Voorraadbeheer inputs
+function maakVoorraadInputs() {
+  const container = document.getElementById("voorraadInputs");
+  container.innerHTML = "";
+  kledingTypes.forEach(type => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "20px";
+    const label = document.createElement("h3");
+    label.textContent = `Voorraad: ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    div.appendChild(label);
+    const matenLijst = (type==="sokken")?sokkenMaten:maten;
+    matenLijst.forEach(m => {
+      const inputId = `voorraad_${type}_${m.replace(/\s/g,"").replace(/-/g,"_")}`;
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.marginBottom = "5px";
+      const maatLabel = document.createElement("label");
+      maatLabel.setAttribute("for", inputId);
+      maatLabel.textContent = m;
+      maatLabel.style.width = "100px";
+      const input = document.createElement("input");
+      input.type="number"; input.min="0"; input.value=voorraad[type][m]??0; input.id=inputId; input.required=true; input.style.width="80px";
+      row.appendChild(maatLabel); row.appendChild(input);
+      div.appendChild(row);
+    });
+    container.appendChild(div);
+  });
+}
+
+// Registraties tabel
+function updateTeamFilter() {
+  const teams = [...new Set(registraties.map(r=>r.team))].sort();
+  const tf = document.getElementById("teamFilter");
+  tf.innerHTML = '<option value="">Alle teams</option>';
+  teams.forEach(t => tf.innerHTML+=`<option value="${t}">${t}</option>`);
+}
+function updateTable() {
+  const filterTeam = document.getElementById("teamFilter").value;
+  const tbody = document.querySelector("#registratieTable tbody");
+  tbody.innerHTML = "";
+  registraties.filter(r=>filterTeam===""||r.team===filterTeam)
+  .forEach((r,i)=>{
+    tbody.innerHTML+=`<tr>
+      <td>${r.naam}</td>
+      <td>${r.geslacht}</td>
+      <td>${r.team}</td>
+      <td>${r.shirt}</td>
+      <td>${r.broek}</td>
+      <td>${r.jack}</td>
+      <td>${r.sokken}</td>
+      <td><button class="delete-btn" onclick="verwijderReg(${i})">X</button></td>
+    </tr>`;
+  });
+  updateTeamFilter();
+}
+function verwijderReg(i){registraties.splice(i,1);saveRegistraties();updateTable();}
+
+// Voorraad verlagen na registratie
+function verlaagVoorraad(type,maat){if(!voorraad[type]) return; if(voorraad[type][maat]>0){voorraad[type][maat]--;saveVoorraad();}else{alert(`Let op: voorraad van ${type} maat ${maat} is op!`);}}
+
+// Registratie submit
+document.getElementById("kledingForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const r = {
+    naam: document.getElementById("naam").value.trim(),
+    geslacht: document.getElementById("geslacht").value,
+    team: document.getElementById("team").value.trim(),
+    shirt: document.getElementById("maat_shirt").value,
+    broek: document.getElementById("maat_broek").value,
+    jack: document.getElementById("maat_jack").value,
+    sokken: document.getElementById("maat_sokken").value
   };
-  function saveVoorraad() {
-    localStorage.setItem("voorraad", JSON.stringify(voorraad));
-  }
+  registraties.push(r); saveRegistraties();
+  verlaagVoorraad("shirt",r.shirt);
+  verlaagVoorraad("broek",r.broek);
+  verlaagVoorraad("jack",r.jack);
+  verlaagVoorraad("sokken",r.sokken);
+  e.target.reset(); updateTable();
+});
 
-  // Voorraad beheren UI maken
-  function maakVoorraadInputs() {
-    const container = document.getElementById("voorraadInputs");
-    container.innerHTML = "";
-    kledingTypes.forEach(type => {
-      const div = document.createElement("div");
-      div.style.marginBottom = "20px";
-      const label = document.createElement("h3");
-      label.textContent = `Voorraad: ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-      div.appendChild(label);
+// Export CSV
+function exportCSV(){
+  let csv="Naam,Geslacht,Team,Shirt,Broek/Rok,Jack,Sokken\n";
+  registraties.forEach(r=>{
+    csv+=`"${r.naam}","${r.geslacht}","${r.team}","${r.shirt}","${r.broek}","${r.jack}","${r.sokken}"\n`;
+  });
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="kledingregistratie.csv";
+  a.click();
+}
 
-      const matenLijst = (type === "sokken") ? sokkenMaten : maten;
-      matenLijst.forEach(m => {
-        const inputId = `voorraad_${type}_${m.replace(/\s/g,"").replace(/-/g,"_")}`;
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.alignItems = "center";
-        row.style.marginBottom = "5px";
+// Tab wisselen
+function showTab(tab){
+  document.getElementById("registraties").classList.toggle("hidden",tab!=="registraties");
+  document.getElementById("voorraadbeheer").classList.toggle("hidden",tab!=="voorraadbeheer");
+}
 
-        const maatLabel = document.createElement("label");
-        maatLabel.setAttribute("for", inputId);
-        maatLabel.textContent = m;
-        maatLabel.style.width = "100px";
-
-        const input = document.createElement("input");
-        input.type = "number";
-        input.min = "0";
-        input.value = voorraad[type][m] ?? 0;
-        input.id = inputId;
-        input.style.width = "80px";
-        input.required = true;
-
-        row.appendChild(maatLabel);
-        row.appendChild(input);
-        div.appendChild(row);
-      });
-
-      container.appendChild(div);
+// Voorraad opslaan
+document.getElementById("voorraadForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  kledingTypes.forEach(type=>{
+    const matenLijst=(type==="sokken")?sokkenMaten:maten;
+    matenLijst.forEach(m=>{
+      const inputId=`voorraad_${type}_${m.replace(/\s/g,"").replace(/-/g,"_")}`;
+      const val=parseInt(document.getElementById(inputId).value,10);
+      if(!isNaN(val)&&val>=0){voorraad[type][m]=val;}
     });
-  }
+  });
+  saveVoorraad();
+  alert("Voorraad opgeslagen!");
+});
 
-  // Registraties tabel updaten
-  function updateTeamFilter() {
-    const teams = [...new Set(registraties.map(r => r.team))].sort();
-    const tf = document.getElementById("teamFilter");
-    tf.innerHTML = '<option value="">Alle teams</option>';
-    teams.forEach(t => {
-      tf.innerHTML += `<option value="${t}">${t}</option>`;
-    });
-  }
-  function updateTable() {
-    const filterTeam = document.getElementById("teamFilter").value;
-    const tbody = document.querySelector("#registratieTable tbody");
-    tbody.innerHTML = "";
-    registraties
-      .filter(r => filterTeam === "" || r.team === filterTeam)
-      .forEach((r, i) => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${r.naam}</td>
-            <td>${r.team}</td>
-            <td>${r.shirt}</td>
-            <td>${r.broek}</td>
-            <td>${r.jack}</td>
-            <td>${r.sokken}</td>
-            <td><button class="delete-btn" onclick="verwijderReg(${i})">X</button></td>
-          </tr>
-        `;
-      });
-    updateTeamFilter();
-  }
-  function verwijderReg(i) {
-    registraties.splice(i,1);
-    saveRegistraties();
-    updateTable();
-  }
+// Leden importeren
+function vulLedenDropdowns(){
+  const naamSelect=document.getElementById("naam");
+  const teamSelect=document.getElementById("team");
+  const geslachtSelect=document.getElementById("geslacht");
+  naamSelect.innerHTML='<option value="" disabled selected>-- Kies speler --</option>';
+  teamSelect.innerHTML='<option value="" disabled selected>-- Kies team --</option>';
+  const uniekeTeams=[...new Set(leden.map(l=>l.team))].sort();
+  uniekeTeams.forEach(t=>{
+    const opt=document.createElement("option");
+    opt.value=t; opt.textContent=t;
+    teamSelect.appendChild(opt);
+  });
+  leden.forEach(l=>{
+    const opt=document.createElement("option");
+    opt.value=l.naam; opt.textContent=l.naam;
+    naamSelect.appendChild(opt);
+  });
+}
 
-  // Voorraad verlagen na registratie
-  function verlaagVoorraad(type, maat) {
-    if (!voorraad[type]) return;
-    if (voorraad[type][maat] > 0) {
-      voorraad[type][maat]--;
-      saveVoorraad();
-    } else {
-      alert(`Let op: voorraad van ${type} maat ${maat} is op!`);
+// CSV import functie
+function importLeden(){
+  const fileInput=document.getElementById("importCsv");
+  const status=document.getElementById("importStatus");
+  status.textContent="";
+  if(!fileInput.files.length){alert("Kies eerst een CSV bestand"); return;}
+  const file=fileInput.files[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const tekst=e.target.result;
+    const regels=tekst.trim().split(/\r?\n/);
+    if(regels.length<2){alert("CSV bestand lijkt leeg of ongeldig");return;}
+    const nieuweLeden=[];
+    for(let i=1;i<regels.length;i++){
+      const regel=regels[i].split(",");
+      if(regel.length>=2){
+        const naam=regel[0].trim();
+        const team=regel[1].trim();
+        const geslacht=(regel[2]?regel[2].trim():"");
+        if(naam && team){nieuweLeden.push({naam,team,geslacht});}
+      }
     }
-  }
+    if(nieuweLeden.length===0){alert("Geen geldige leden gevonden in CSV");return;}
+    const bestaandNamen=new Set(leden.map(l=>l.naam));
+    nieuweLeden.forEach(lid=>{if(!bestaandNamen.has(lid.naam)){leden.push(lid);}});
+    saveLeden();
+    vulLedenDropdowns();
+    status.textContent=`${nieuweLeden.length} leden succesvol geïmporteerd!`;
+    fileInput.value="";
+  };
+  reader.readAsText(file);
+}
 
-  // Registratie formulier submitten
-  document.getElementById("kledingForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const r = {
-      naam: document.getElementById("naam").value.trim(),
-      team: document.getElementById("team").value.trim(),
-      shirt: document.getElementById("maat_shirt").value,
-      broek: document.getElementById("maat_broek").value,
-      jack: document.getElementById("maat_jack").value,
-      sokken: document.getElementById("maat_sokken").value
-    };
-    registraties.push(r);
-    saveRegistraties();
-    verlaagVoorraad("shirt", r.shirt);
-    verlaagVoorraad("broek", r.broek);
-    verlaagVoorraad("jack", r.jack);
-    verlaagVoorraad("sokken", r.sokken);
-    e.target.reset();
-    updateTable();
-  });
-
-  // Export CSV functie
-  function exportCSV() {
-    let csv = "Naam,Team,Shirt,Broek/Rok,Jack,Sokken\n";
-    registraties.forEach(r => {
-      csv += `"${r.naam}","${r.team}","${r.shirt}","${r.broek}","${r.jack}","${r.sokken}"\n`;
-    });
-    const blob = new Blob([csv], {type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "kledingregistratie.csv";
-    a.click();
-  }
-
-  // Tab wisselen tussen registratie en voorraadbeheer
-  function showTab(tab) {
-    document.getElementById("registraties").classList.toggle("hidden", tab !== "registraties");
-    document.getElementById("voorraadbeheer").classList.toggle("hidden", tab !== "voorraadbeheer");
-  }
-
-  // Voorraad opslaan vanuit formulier
-  document.getElementById("voorraadForm").addEventListener("submit", e => {
-    e.preventDefault();
-    kledingTypes.forEach(type => {
-      const matenLijst = (type === "sokken") ? sokkenMaten : maten;
-      matenLijst.forEach(m => {
-        const inputId = `voorraad_${type}_${m.replace(/\s/g,"").replace(/-/g,"_")}`;
-        const val = parseInt(document.getElementById(inputId).value, 10);
-        if (!isNaN(val) && val >= 0) {
-          voorraad[type][m] = val;
-        }
-      });
-    });
-    saveVoorraad();
-    alert("Voorraad opgeslagen!");
-  });
-
-  // Init app na login
-  function initApp() {
-    maakVoorraadInputs();
-    updateTable();
-    showTab("registraties");
-  }
+// Init app
+function initApp(){maakVoorraadInputs();updateTable();vulLedenDropdowns();showTab("registraties");}
 </script>
 
 </body>
