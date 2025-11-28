@@ -1,0 +1,51 @@
+body {
+    font-family: Arial;
+    margin: 30px;
+    background: #f5f5f5;
+}
+
+h1 {
+    color: #004c97;
+}
+
+.panel {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+}
+
+button {
+    padding: 10px 15px;
+    background: #004c97;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.error {
+    color: red;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    background: #004c97;
+    color: white;
+    padding: 10px;
+}
+
+table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+}

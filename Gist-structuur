@@ -1,0 +1,9 @@
+hockey-kledingregistratie/
+│
+├── index.html
+├── style.css
+├── app.js
+├── voorraad.js
+├── admin.js
+├── firebase.js
+└── README.md

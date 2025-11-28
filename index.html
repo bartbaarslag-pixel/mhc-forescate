@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Hockeyclub Kledingregistratie</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Kledingregistratie – Hockeyclub</h1>
+
+<div id="login-section" class="panel">
+    <h2>Beheerder Login</h2>
+    <input id="admin-password" type="password" placeholder="Wachtwoord">
+    <button onclick="loginAdmin()">Login</button>
+    <p id="login-error" class="error"></p>
+</div>
+
+<div id="app-section" style="display:none;">
+
+    <div class="panel">
+        <h2>Nieuwe registratie</h2>
+        <form id="kledingForm">
+            <input type="text" id="naam" placeholder="Naam speler" required>
+            <input type="text" id="team" placeholder="Team" required>
+
+            <label>Maat shirt</label><select id="maat_shirt"></select>
+            <label>Maat broek/rok</label><select id="maat_broek"></select>
+            <label>Maat jack</label><select id="maat_jack"></select>
+
+            <label>Maat sokken</label>
+            <select id="maat_sokken">
+                <option>28-32</option><option>33-36</option>
+                <option>36-40</option><option>40-44</option>
+                <option>45-47</option>
+            </select>
+
+            <button type="submit">Opslaan</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Teamfilter</h2>
+        <select id="teamFilter" onchange="updateTable()">
+            <option value="">Alle teams</option>
+        </select>
+    </div>
+
+    <div class="panel">
+        <h2>Voorraadbeheer</h2>
+        <div id="voorraad-table"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Registraties</h2>
+        <button onclick="exportCSV()">Exporteren naar CSV</button>
+        <table id="registratieTable">
+            <thead>
+                <tr>
+                    <th>Naam</th><th>Team</th>
+                    <th>Shirt</th><th>Broek/Rok</th>
+                    <th>Jack</th><th>Sokken</th>
+                    <th>Verwijderen</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+<script src="voorraad.js"></script>
+<script src="admin.js"></script>
+<script src="firebase.js"></script>
+
+</body>
+</html>
